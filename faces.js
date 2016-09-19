@@ -79,8 +79,18 @@
             })
         })
 
-        if (face.eyes[0].angle > 0) {
+        var eyeAngle = face.eyes[0].angle
+        if (eyeAngle > 15) {
             emotionScore.angry += .5
+        } else if (eyeAngle > 5) {
+            emotionScore.angry += .25
+            emotionScore.sad += .25
+        } else if (eyeAngle < -15) {
+            emotionScore.angry -= .5
+            emotionScore.sad += .25
+        } else if (eyeAngle < -5) {
+            emotionScore.angry -= .25
+            emotionScore.sad += .1
         }
 
         var maxScore, maxEmotions = []
@@ -91,7 +101,7 @@
             } else if (emotionScore[emotion] == maxScore)
                 maxEmotions.push (emotion)
         })
-        console.log(taggedFeatures.map(function(obj){return obj.id}))
+        console.log(taggedFeatures.map(function(obj){return obj.id}).concat(['eye angle: ' + eyeAngle]))
         console.log(emotionScore)
         console.log("Net affect: " + maxEmotions.join('/'))
         return maxEmotions
@@ -305,7 +315,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eyebrow, 'angryStraightBrows', {angry:+1}, function (paper, lr, cx, cy) {
+    addFeature (eyebrow, 'angryStraightBrows', {angry:+1,sad:.75}, function (paper, lr, cx, cy) {
         // angry straight lines
         var e, x = cx - 30, y = cy - 10;
 
@@ -322,7 +332,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eye, 'horizontalEyes', {angry:-.5}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'horizontalEyes', {angry:-.5,surprised:-.5}, function (paper, lr, cx, cy, angle) {
         // Horizontal
         var e, x = cx - 30, y = cy;
 
@@ -488,7 +498,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'thinFrownMouth', {angry:+.5,sad:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'thinFrownMouth', {angry:+1,sad:+1.5}, function (paper, cx, cy) {
         // Thin downturn
         var e, x = cx - 75, y = cy + 15;
 
@@ -499,7 +509,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'thinFlatMouth', {angry:+.25,sad:+.5}, function (paper, cx, cy) {
+    addFeature (mouth, 'thinFlatMouth', {angry:+.25,sad:+.6}, function (paper, cx, cy) {
         // Thin flat
         var e, x = cx - 55, y = cy;
 
@@ -527,7 +537,7 @@
                        "h -118");
         e.setAttribute("fill", "#f0f0f0");
     });
-    addFeature (mouth, 'openSnarl', {angry:+1,sad:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'openSnarl', {angry:+1,sad:+1.1}, function (paper, cx, cy) {
         // Open-mouthed snarl, bottom teeth
         var e, x = cx - 75, y = cy + 25;
 
@@ -584,7 +594,7 @@
         e.setAttribute("fill", "#f0f0f0");
     });
 
-    addFeature (mouth, 'surprisedWithPointyTeeth', {surprised:+1,angry:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'surprisedWithPointyTeeth', {surprised:+1,angry:+.8}, function (paper, cx, cy) {
         // Surprised "O" mouth with pointy teeth
         var e, x = cx - 25, y = cy + 10;
 
