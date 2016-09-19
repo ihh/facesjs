@@ -75,17 +75,18 @@
                 emotionScore[emotion] = (emotionScore[emotion] || 0) + featureAffect[id][emotion]
             })
         })
-        var maxScore, maxEmotion
+        var maxScore, maxEmotions = []
         Object.keys(emotionScore).forEach (function (emotion) {
             if (typeof(maxScore) === 'undefined' || emotionScore[emotion] > maxScore) {
                 maxScore = emotionScore[emotion]
-                maxEmotion = emotion
-            }
+                maxEmotions = [emotion]
+            } else if (emotionScore[emotion] == maxScore)
+                maxEmotions.push (emotion)
         })
-//        console.log(Array.prototype.map.call(arguments,(function(obj){return obj.id})))
-//        console.log(emotionScore)
-//        console.log("Net affect: " + maxEmotion)
-        return maxEmotion
+        console.log(Array.prototype.map.call(arguments,(function(obj){return obj.id})))
+        console.log(emotionScore)
+        console.log("Net affect: " + maxEmotions.join('/'))
+        return maxEmotions.join('/')
     }
     
     addFeature (head, 'genericHead', {}, function (paper, fatness, color) {
@@ -514,7 +515,7 @@
                        "a 25,25 0 1 1 50,0" +
                        "a 25,25 0 1 1 -50,0");
     });
-    addFeature (mouth, 'surprisedWithTeeth', {surprised:+1,angry:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'surprisedWithTeeth', {surprised:+1,angry:+.5}, function (paper, cx, cy) {
         // Surprised "O" mouth with teeth
         var e, x = cx - 25, y = cy + 10;
 
@@ -584,7 +585,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (mouth, 'thinFrownMouthWithEnds', {sad:+2,angry:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'thinFrownMouthWithEnds', {sad:+1.5,angry:+1}, function (paper, cx, cy) {
         // Thin downturn with ends
         var e, x = cx - 75, y = cy + 15;
 
