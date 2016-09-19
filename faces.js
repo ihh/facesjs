@@ -75,8 +75,7 @@
     }
 
     var allEmotions = ['happy', 'angry', 'sad', 'surprised']
-    function affects() {
-        var face = this
+    function affects (face) {
         var emotionScore = {}
 	allEmotions.forEach (function (emotion) { emotionScore[emotion] = 0 })
 
@@ -114,6 +113,16 @@
 //        console.log(emotionScore)
 //        console.log("Net affect: " + maxEmotions.join('/'))
         return maxEmotions
+    }
+
+    // seeded pseudorandom numbers
+    var seed = 6;
+    function seedRandomNumbers (newSeed) {  // 0 <= newSeed < 1
+	seed = Math.floor (newSeed * 233280)
+    }
+    function randomNumber() {
+	seed = (seed * 9301 + 49297) % 233280;
+	return seed / 233280;
     }
     
     addFeature (head, 'genericHead', {}, function (paper, fatness, color) {
@@ -770,26 +779,16 @@
         scaleCentered(e, fatScale(fatness), 1);
 	e.setAttribute ("fill", color);
     });
+
     addFeature (hair, 'spikyHair', {}, function (paper, fatness, color, density, angle) {
-        // Spikes
-	var xmin = 20, xmax = 380, ymax = 300, ymin = 120
-	var len = 80
-
-	var w = xmax - xmin, h = ymax - ymin, d = (w*w/4 - h*h) / (2*h)
-	var cx = xmin + w/2, cy = ymax + d, r = h + d
-	var thetaMax = Math.atan ((w/2) / d)
-
+	// Spiky
 	var rads = angle * Math.PI / 180
-
-	var pathText = ''
-	for (var theta = -thetaMax; theta <= thetaMax; theta += .1*thetaMax*(1 - density)) {
-	    var hx = cx + r*Math.sin(theta), hy = cy - r*Math.cos(theta)
-
-	    var ha = theta + (theta/thetaMax)*rads + Math.random()*.1
-
-	    pathText += "M" + hx + "," + hy
-		+ "l" + len*Math.sin(ha) + "," + (-len*Math.cos(ha))
-	}
+	var len = 80
+	seedRandomNumbers (density)
+	var pathText = makeHair (density, function (theta, thetaMax) {
+	    var ha = theta + (theta/thetaMax)*rads + randomNumber()*.1
+	    return "l" + len*Math.sin(ha) + "," + (-len*Math.cos(ha))
+	})
 
         var e = newPath(paper);
 	e.setAttribute ("d", pathText)
@@ -798,6 +797,36 @@
         e.setAttribute("stroke-width", 2 + 4*(1-density));
         scaleCentered(e, fatScale(fatness), 1);
     });
+
+    addFeature (hair, 'bobbleHair', {}, function (paper, fatness, color, density, angle) {
+	// Bobbles
+	var rads = angle * Math.PI / 180
+	var r = 10 + 10*(1-density)
+	var pathText = makeHair (density/3, function (theta, thetaMax) {
+            return "a "+r+","+r+" 0 1 1 0.1,0"
+	})
+
+        var e = newPath(paper);
+	e.setAttribute ("d", pathText)
+        e.setAttribute("fill", color);
+        scaleCentered(e, fatScale(fatness), 1);
+    });
+
+    function makeHair (density, callback) {
+	var xmin = 20, xmax = 380, ymax = 300, ymin = 120
+
+	var w = xmax - xmin, h = ymax - ymin, d = (w*w/4 - h*h) / (2*h)
+	var cx = xmin + w/2, cy = ymax + d, r = h + d
+	var thetaMax = Math.atan ((w/2) / d)
+
+	var pathText = ''
+	for (var theta = -thetaMax; theta <= thetaMax; theta += .1*thetaMax*(1 - density)) {
+	    var hx = cx + r*Math.sin(theta), hy = cy - r*Math.cos(theta)
+	    pathText += "M" + hx + "," + hy + callback(theta,thetaMax)
+	}
+
+	return pathText
+    }
 
     addFeature (hair, 'baldHead', {}, function () {
         // Intentionally left blank (bald)
@@ -870,7 +899,7 @@
             var span = document.createElement('span');
             div.setAttribute('style','position:relative;text-align:center;')
             span.setAttribute('style','position:absolute;left:0;bottom:0;width:100%;margin-bottom:1px;-moz-user-select:none;-webkit-user-select:none;')
-            span.innerText = face.affects().join(', ');
+            span.innerText = affects(face).join(', ');
 
             div.appendChild(paper);
             div.appendChild(span);
@@ -924,6 +953,20 @@
         face.cheeks[1] = {id: id, lr: "r", cx: 275, cy: 360};
     }
 
+    function deepCopy (obj) {
+	var copy
+	if (Object.prototype.toString.call(obj) === '[object Array]')
+	    copy = obj.slice(0)
+	else if (typeof(obj) === 'object') {
+	    var copy = {}
+	    Object.keys(obj).forEach (function (key) {
+		copy[key] = deepCopy (obj[key])
+	    })
+	} else
+	    copy = obj
+	return copy
+    }
+
     function generate(container, showAffects) {
         var angle, colors, face, flip, id;
 
@@ -950,8 +993,6 @@
 	colors = ["#090806","#2C222B","#71635A","#B7A69E","#D6C4C2","#CABFB1","#DCD0BA","#FFF5E1","#E6CEA8","#E5C8A8","#DEBC99","#B89778","#A56B46","#B55239","#8D4A43","#91553D","#533D32","#3B3024","#554838","#4E433F","#504444","#6A4E42","#A7856A","#977961"]  // hair colors from http://www.collectedwebs.com/art/colors/hair/
 	angle = Math.random() * 60 - 20
         face.hair = {id: randomObjectKey(hair), density: Math.random(), angle: angle, color: colors[randomArrayIndex(colors)]};
-
-        face.affects = affects;
         
         if (typeof container !== "undefined") {
             display(container, face, showAffects);
@@ -961,8 +1002,9 @@
     }
 
     // mutate a face to a new (single-emotion) affect
-    function mutate (face, newAffect) {
-	var oldAffects = face.affects()
+    function mutate (face, mutProb, newAffect) {
+	mutProb = mutProb || 1;
+	var oldAffects = affects(face)
 	while (!newAffect) {
 	    var emotion = allEmotions[randomArrayIndex(allEmotions)]
 	    if (oldAffects.length == allEmotions.length
@@ -972,17 +1014,35 @@
 
 	var newAffects
 	do {
-	    randomizeEyebrows (face);
-	    randomizeEyes (face);
-	    randomizeMouth (face);
-	    randomizeCheeks (face);
-	    newAffects = face.affects()
+	    if (Math.random() < mutProb)
+		randomizeEyebrows (face);
+	    if (Math.random() < mutProb)
+		randomizeEyes (face);
+	    if (Math.random() < mutProb)
+		randomizeMouth (face);
+	    if (Math.random() < mutProb)
+		randomizeCheeks (face);
+	    newAffects = affects(face)
 	} while (newAffects.length > 1 || !newAffects.find (function (e) { return newAffect == e }))
+
+	return face
+    }
+
+    // generate a face for each emotion
+    function generateSet (mutProb) {
+	var faceSet = {}
+	var face = generate()
+	allEmotions.forEach (function (emotion) {
+	    faceSet[emotion] = mutate (deepCopy(face), mutProb, emotion)
+	})
+	return faceSet
     }
 
     return {
         display: display,
         generate: generate,
-	mutate: mutate
+	mutate: mutate,
+	affects: affects,
+	generateSet: generateSet
     };
 }));

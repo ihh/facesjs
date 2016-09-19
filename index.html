@@ -130,7 +130,7 @@ function newFaces() {
 newFaces(); // Generate faces for initial page load
 
 function mutateFace(i) {
-    faces.mutate(faceList[i]);
+    faceList[i] = faces.mutate(faceList[i],.1);
     faces.display("c" + i, faceList[i], true);
 }
 
