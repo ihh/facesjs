@@ -67,14 +67,22 @@
         });
     }
 
-    function computeAffect() {
-        var emotionScore = {}
-        Array.prototype.forEach.call (arguments, function (obj) {
+    function affect() {
+        var face = this
+        var emotionScore = { happy: 0, angry: 0, sad: 0, surprised: 0 }
+
+        var taggedFeatures = [face.eyebrows[0], face.eyes[0], face.mouth]
+        taggedFeatures.forEach (function (obj) {
             var id = obj.id
             Object.keys (featureAffect[id]).forEach (function (emotion) {
-                emotionScore[emotion] = (emotionScore[emotion] || 0) + featureAffect[id][emotion]
+                emotionScore[emotion] += featureAffect[id][emotion]
             })
         })
+
+        if (face.eyes[0].angle > 0) {
+            emotionScore.angry += .5
+        }
+
         var maxScore, maxEmotions = []
         Object.keys(emotionScore).forEach (function (emotion) {
             if (typeof(maxScore) === 'undefined' || emotionScore[emotion] > maxScore) {
@@ -83,10 +91,10 @@
             } else if (emotionScore[emotion] == maxScore)
                 maxEmotions.push (emotion)
         })
-        console.log(Array.prototype.map.call(arguments,(function(obj){return obj.id})))
+        console.log(taggedFeatures.map(function(obj){return obj.id}))
         console.log(emotionScore)
         console.log("Net affect: " + maxEmotions.join('/'))
-        return maxEmotions.join('/')
+        return maxEmotions
     }
     
     addFeature (head, 'genericHead', {}, function (paper, fatness, color) {
@@ -246,8 +254,8 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (eyebrow, 'angryCurvedBrows', {angry:+1}, function (paper, lr, cx, cy) {
-        // angry down-curved
+    addFeature (eyebrow, 'downCurvedBrows', {angry:+.6}, function (paper, lr, cx, cy) {
+        // down-curved
         var e, x = cx - 30, y = cy - 10;
 
         e = newPath(paper);
@@ -263,7 +271,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eyebrow, 'furrowedBrows', {angry:+1,sad:+1}, function (paper, lr, cx, cy) {
+    addFeature (eyebrow, 'furrowedBrows', {angry:+.5,sad:+.25}, function (paper, lr, cx, cy) {
         // furrowed
         var e, x = cx - 30, y = cy - 20;
 
@@ -314,7 +322,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eye, 'horizontalEyes', {}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'horizontalEyes', {angry:-.5}, function (paper, lr, cx, cy, angle) {
         // Horizontal
         var e, x = cx - 30, y = cy;
 
@@ -343,6 +351,25 @@
                        "a 12,8 0 1 1 0.1,0");
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
+
+    addFeature (eye, 'normalEyesWide', {angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
+        // Bigger eyes, bigger pupils
+        var e, x = cx, y = cy + 20;
+
+        e = newPath(paper);
+        e.setAttribute("d", "M " + x + "," + y +
+                       "a 35,25 0 1 1 0.1,0");
+        e.setAttribute("stroke", "#000");
+        e.setAttribute("stroke-width", "6");
+        e.setAttribute("fill", "#f0f0f0");
+        rotateCentered(e, (lr === "l" ? angle : -angle));
+
+        e = newPath(paper);
+        e.setAttribute("d", "M " + x + "," + (y - 12) +
+                       "a 15,10 0 1 1 0.1,0");
+        rotateCentered(e, (lr === "l" ? angle : -angle));
+    });
+
     addFeature (eye, 'dotEyes', {}, function (paper, lr, cx, cy, angle) {
         // Dot
         var e, x = cx, y = cy + 13;
@@ -352,6 +379,7 @@
                        "a 20,15 0 1 1 0.1,0");
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
+
     addFeature (eye, 'arcEyelid', {}, function (paper, lr, cx, cy, angle) {
         // Arc eyelid
         var e, x = cx, y = cy + 20;
@@ -369,7 +397,26 @@
         e.setAttribute("fill", "none");
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
-    addFeature (eye, 'crossEyed', {angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
+
+    addFeature (eye, 'arcEyelidWide', {angry:+.7,surprised:+.5}, function (paper, lr, cx, cy, angle) {
+        // Arc eyelid, 10% bigger
+        var e, x = cx, y = cy + 18;
+
+        e = newPath(paper);
+        e.setAttribute("d", "M " + x + "," + y +
+                       "a 18.7,18.7 0 1 1 0.1,0 z");
+        rotateCentered(e, (lr === "l" ? angle : -angle));
+
+        e = newPath(paper);
+        e.setAttribute("d", "M " + (x - 44) + "," + (y - 15.4) +
+                       "c 39.6,-48.4 95.7,-4.4 95.7,-4.4");
+        e.setAttribute("stroke", "#000");
+        e.setAttribute("stroke-width", "4");
+        e.setAttribute("fill", "none");
+        rotateCentered(e, (lr === "l" ? angle : -angle));
+    });
+
+    addFeature (eye, 'normalEyesCrossed', {angry:+.5,surprised:+.4}, function (paper, lr, cx, cy, angle) {
         // Cross-eyed (circle with a dot in it, shifted closer to center)
         var e, x = cx, y = cy + 20;
 
@@ -430,7 +477,7 @@
         scaleCentered(e, scale, scale);
     });
 
-    addFeature (mouth, 'thinSmile', {happy:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'thinSmile', {happy:+2.5}, function (paper, cx, cy) {
         // Thin smile
         var e, x = cx - 75, y = cy - 15;
 
@@ -452,7 +499,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'thinFlatMouth', {angry:+.5,sad:+.5}, function (paper, cx, cy) {
+    addFeature (mouth, 'thinFlatMouth', {angry:+.25,sad:+.5}, function (paper, cx, cy) {
         // Thin flat
         var e, x = cx - 55, y = cy;
 
@@ -463,7 +510,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'openSmile', {happy:+2}, function (paper, cx, cy) {
+    addFeature (mouth, 'openSmile', {happy:+3}, function (paper, cx, cy) {
         // Open-mouthed smile, top teeth
         var e, x = cx - 75, y = cy - 15;
 
@@ -497,7 +544,7 @@
                        "h -118");
         e.setAttribute("fill", "#f0f0f0");
     });
-    addFeature (mouth, 'openMouth', {surprised:+1}, function (paper, cx, cy) {
+    addFeature (mouth, 'openMouth', {surprised:+1,angry:.25}, function (paper, cx, cy) {
         // Generic open mouth
         var e, x = cx - 55, y = cy;
 
@@ -506,7 +553,7 @@
                        "a 54,10 0 1 1 110,0" +
                        "a 54,20 0 1 1 -110,0");
     });
-    addFeature (mouth, 'surprisedMouth', {}, function (paper, cx, cy) {
+    addFeature (mouth, 'surprisedMouth', {surprised:+1}, function (paper, cx, cy) {
         // Surprised "O" mouth
         var e, x = cx - 25, y = cy + 10;
 
@@ -515,7 +562,7 @@
                        "a 25,25 0 1 1 50,0" +
                        "a 25,25 0 1 1 -50,0");
     });
-    addFeature (mouth, 'surprisedWithTeeth', {surprised:+1,angry:+.5}, function (paper, cx, cy) {
+    addFeature (mouth, 'surprisedWithTeeth', {surprised:+1,angry:+.3}, function (paper, cx, cy) {
         // Surprised "O" mouth with teeth
         var e, x = cx - 25, y = cy + 10;
 
@@ -559,7 +606,7 @@
         e.setAttribute("fill", "#f0f0f0");
     });
 
-    addFeature (mouth, 'thinSmileWithEnds', {happy:+2}, function (paper, cx, cy) {
+    addFeature (mouth, 'thinSmileWithEnds', {happy:+3}, function (paper, cx, cy) {
         // Thin smile with ends
         var e, x = cx - 75, y = cy - 15;
 
@@ -730,7 +777,7 @@
             var span = document.createElement('span');
             div.setAttribute('style','position:relative;text-align:center;')
             span.setAttribute('style','position:absolute;left:0;bottom:0;width:100%;')
-            span.innerText = face.affect;
+            span.innerText = face.affect().join(', ');
 
             div.appendChild(paper);
             div.appendChild(span);
@@ -783,8 +830,8 @@
 
         face.hair = {id: randomObjectKey(hair)};
 
-        face.affect = computeAffect (face.eyebrows[0], face.eyes[0], face.mouth)
-
+        face.affect = affect;
+        
         if (typeof container !== "undefined") {
             display(container, face, showAffect);
         }
