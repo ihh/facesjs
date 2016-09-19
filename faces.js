@@ -14,12 +14,19 @@
 }(this, function () {
     "use strict";
 
-    var eye = {}, eyebrow = {}, hair = {}, head = {}, mouth = {}, nose = {};
-    var featureAffect = {};
+    var eye = {}, eyebrow = {}, hair = {}, head = {}, mouth = {}, nose = {}, cheeks = {};
+    var featureInfo = {};
     
     function newPath(paper) {
         var e;
         e = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        paper.appendChild(e);
+        return e;
+    }
+
+    function newDefs(paper) {
+        var e;
+        e = document.createElementNS("http://www.w3.org/2000/svg", "defs");
         paper.appendChild(e);
         return e;
     }
@@ -61,21 +68,23 @@
 
     function addFeature (obj, id, affect, func) {
         obj[id] = func;
-        featureAffect[id] = {};
+        featureInfo[id] = {};
         Object.keys(affect).forEach (function (emotion) {
-            featureAffect[id][emotion] = affect[emotion];
+            featureInfo[id][emotion] = affect[emotion];
         });
     }
 
-    function affect() {
+    var allEmotions = ['happy', 'angry', 'sad', 'surprised']
+    function affects() {
         var face = this
-        var emotionScore = { happy: 0, angry: 0, sad: 0, surprised: 0 }
+        var emotionScore = {}
+	allEmotions.forEach (function (emotion) { emotionScore[emotion] = 0 })
 
-        var taggedFeatures = [face.eyebrows[0], face.eyes[0], face.mouth]
+        var taggedFeatures = [face.eyebrows[0], face.eyes[0], face.cheeks[0], face.mouth]
         taggedFeatures.forEach (function (obj) {
             var id = obj.id
-            Object.keys (featureAffect[id]).forEach (function (emotion) {
-                emotionScore[emotion] += featureAffect[id][emotion]
+            Object.keys (featureInfo[id]).forEach (function (emotion) {
+                emotionScore[emotion] += featureInfo[id][emotion]
             })
         })
 
@@ -101,9 +110,9 @@
             } else if (emotionScore[emotion] == maxScore)
                 maxEmotions.push (emotion)
         })
-        console.log(taggedFeatures.map(function(obj){return obj.id}).concat(['eye angle: ' + eyeAngle]))
-        console.log(emotionScore)
-        console.log("Net affect: " + maxEmotions.join('/'))
+//        console.log(taggedFeatures.map(function(obj){return obj.id}).concat(['eye angle: ' + eyeAngle]))
+//        console.log(emotionScore)
+//        console.log("Net affect: " + maxEmotions.join('/'))
         return maxEmotions
     }
     
@@ -344,7 +353,7 @@
         e.setAttribute("fill", "none");
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
-    addFeature (eye, 'normalEyes', {}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'normalEyes', {type:'normal'}, function (paper, lr, cx, cy, angle) {
         // Normal (circle with a dot in it)
         var e, x = cx, y = cy + 20;
 
@@ -362,7 +371,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'normalEyesWide', {angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'normalEyesWide', {type:'normal',angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
         // Bigger eyes, bigger pupils
         var e, x = cx, y = cy + 20;
 
@@ -380,7 +389,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'dotEyes', {}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'dotEyes', {type:'dot'}, function (paper, lr, cx, cy, angle) {
         // Dot
         var e, x = cx, y = cy + 13;
 
@@ -390,7 +399,17 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'arcEyelid', {}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'dotEyesWide', {type:'dot',angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
+        // Dot
+        var e, x = cx, y = cy + 10;
+
+        e = newPath(paper);
+        e.setAttribute("d", "M " + x + "," + y +
+                       "a 24,18 0 1 1 0.1,0");
+        rotateCentered(e, (lr === "l" ? angle : -angle));
+    });
+
+    addFeature (eye, 'arcEyelid', {type:'arc'}, function (paper, lr, cx, cy, angle) {
         // Arc eyelid
         var e, x = cx, y = cy + 20;
 
@@ -408,7 +427,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'arcEyelidWide', {angry:+.7,surprised:+.5}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'arcEyelidWide', {type:'arc',angry:+.7,surprised:+.5}, function (paper, lr, cx, cy, angle) {
         // Arc eyelid, 10% bigger
         var e, x = cx, y = cy + 18;
 
@@ -426,7 +445,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'normalEyesCrossed', {angry:+.5,surprised:+.4}, function (paper, lr, cx, cy, angle) {
+    addFeature (eye, 'normalEyesCrossed', {type:'normal',angry:+.5,surprised:+.4}, function (paper, lr, cx, cy, angle) {
         // Cross-eyed (circle with a dot in it, shifted closer to center)
         var e, x = cx, y = cy + 20;
 
@@ -687,7 +706,7 @@
         e.setAttribute("fill", "#f0f0f0");
     });
 
-    addFeature (hair, 'shortHair', {}, function (paper, fatness) {
+    addFeature (hair, 'shortHair', {}, function (paper, fatness, color) {
         // Normal short
         var e;
 
@@ -697,8 +716,9 @@
                        "c 0,0 -180,-150 -352,0" +
                        "c 0,0 0,-160 176,-150");
         scaleCentered(e, fatScale(fatness), 1);
+	e.setAttribute ("fill", color);
     });
-    addFeature (hair, 'flatTopHair', {}, function (paper, fatness) {
+    addFeature (hair, 'flatTopHair', {}, function (paper, fatness, color) {
         // Flat top
         var e;
 
@@ -709,8 +729,9 @@
                        "c 0,0 -180,-150 -352,0" +
                        "v -190");
         scaleCentered(e, fatScale(fatness), 1);
+	e.setAttribute ("fill", color);
     });
-    addFeature (hair, 'afro', {}, function (paper, fatness) {
+    addFeature (hair, 'afro', {}, function (paper, fatness, color) {
         // Afro
         var e;
 
@@ -719,8 +740,10 @@
                        "a 210,150 0 1 1 352,0" +
                        "c 0,0 -180,-150 -352,0");
         scaleCentered(e, fatScale(fatness), 1);
+	e.setAttribute ("fill", color);
     });
-    addFeature (hair, 'cornrowHair', {}, function (paper, fatness) {
+
+    addFeature (hair, 'cornrowHair', {}, function (paper, fatness, color, density) {
         // Cornrows
         var e;
 
@@ -741,22 +764,83 @@
                        "v -60" +
                        "m 40,80" +
                        "v -10");
-        e.setAttribute("stroke", "#000");
+        e.setAttribute("stroke", color);
         e.setAttribute("stroke-linecap", "round");
-        e.setAttribute("stroke-width", "22");
+        e.setAttribute("stroke-width", 10 + 12*density);
+        scaleCentered(e, fatScale(fatness), 1);
+	e.setAttribute ("fill", color);
+    });
+    addFeature (hair, 'spikyHair', {}, function (paper, fatness, color, density, angle) {
+        // Spikes
+	var xmin = 20, xmax = 380, ymax = 300, ymin = 120
+	var len = 80
+
+	var w = xmax - xmin, h = ymax - ymin, d = (w*w/4 - h*h) / (2*h)
+	var cx = xmin + w/2, cy = ymax + d, r = h + d
+	var thetaMax = Math.atan ((w/2) / d)
+
+	var rads = angle * Math.PI / 180
+
+	var pathText = ''
+	for (var theta = -thetaMax; theta <= thetaMax; theta += .1*thetaMax*(1 - density)) {
+	    var hx = cx + r*Math.sin(theta), hy = cy - r*Math.cos(theta)
+
+	    var ha = theta + (theta/thetaMax)*rads + Math.random()*.1
+
+	    pathText += "M" + hx + "," + hy
+		+ "l" + len*Math.sin(ha) + "," + (-len*Math.cos(ha))
+	}
+
+        var e = newPath(paper);
+	e.setAttribute ("d", pathText)
+        e.setAttribute("stroke", color);
+        e.setAttribute("stroke-linecap", "round");
+        e.setAttribute("stroke-width", 2 + 4*(1-density));
         scaleCentered(e, fatScale(fatness), 1);
     });
+
     addFeature (hair, 'baldHead', {}, function () {
         // Intentionally left blank (bald)
     });
 
+    // want red cheeks to be rare
+    // a quick/hacky way of upweighting blank cheeks is to add it multiple times with different tags
+    for (var i = 1; i <= 10; ++i) {
+	addFeature (cheeks, 'noCheekColor' + i, {}, function () {
+            // Intentionally left blank (no cheek color)
+	});
+    }
+
+    addFeature (cheeks, 'redCheeks', {sad:-1}, function (paper, lr, cx, cy) {
+	makeCheeks (paper, lr, cx, cy, 20, '#f00', .2, 'redCheek')
+    });
+
+    addFeature (cheeks, 'bigRedCheeks', {sad:-1}, function (paper, lr, cx, cy) {
+	makeCheeks (paper, lr, cx, cy, 30, '#f00', .2, 'bigRedCheek')
+    });
+
+    function makeCheeks (paper, lr, cx, cy, r, color, opacity, tag) {
+	var defs = newDefs(paper);
+	tag = tag + "Gradient" + lr.toUpperCase()
+	defs.innerHTML = '<radialGradient id="'+tag+'" fx="50%" fy="50%" cx="50%" cy="50%" r="75%"><stop offset="0%" stop-color="'+color+'" stop-opacity="'+opacity+'"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></radialGradient>';
+        var e = newPath(paper);
+        e.setAttribute("d", "M " + (lr==="l" ? (cx-r/2) : (cx+r/2)) + "," + (cy+r) +
+                       "a "+r+","+r+" 0 1 1 0.1,0");
+        e.setAttribute("fill", "url(#"+tag+")");
+    }
+  
     function randomArrayIndex(array) {
         return Math.floor(Math.random() * array.length);
     }
 
-    function randomObjectKey(obj) {
+    function randomObjectKey(obj,oldKey) {
         var keys = Object.keys (obj)
-        return keys[randomArrayIndex(keys)]
+	var key
+	do {
+            key = keys[randomArrayIndex(keys)]
+	} while (oldKey && featureInfo[oldKey] && featureInfo[oldKey].type
+		 && featureInfo[key].type != featureInfo[oldKey].type)
+	return key
     }
 
     /**
@@ -765,14 +849,13 @@
      * @param {string|Object} container Either the DOM element of the div that the face will appear in, or a string containing its id.
      * @param {Object} face Face object, such as one generated from faces.generate.
      */
-    function display(container, face, showAffect) {
+    function display(container, face, showAffects) {
         var paper;
 
         if (typeof container === 'string') {
             container = document.getElementById(container);
         }
         container.innerHTML = "";
-
         
         paper = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         paper.setAttribute("version", "1.2");
@@ -782,12 +865,12 @@
         paper.setAttribute("viewBox", "0 0 400 600");
         paper.setAttribute("preserveAspectRatio", "xMinYMin meet");
 
-        if (showAffect) {
+        if (showAffects) {
             var div = document.createElement('div');
             var span = document.createElement('span');
             div.setAttribute('style','position:relative;text-align:center;')
-            span.setAttribute('style','position:absolute;left:0;bottom:0;width:100%;')
-            span.innerText = face.affect().join(', ');
+            span.setAttribute('style','position:absolute;left:0;bottom:0;width:100%;margin-bottom:1px;-moz-user-select:none;-webkit-user-select:none;')
+            span.innerText = face.affects().join(', ');
 
             div.appendChild(paper);
             div.appendChild(span);
@@ -797,6 +880,10 @@
             container.appendChild(paper);
 
         head[face.head.id](paper, face.fatness, face.color);
+
+        cheeks[face.cheeks[0].id](paper, face.cheeks[0].lr, face.cheeks[0].cx, face.cheeks[0].cy);
+        cheeks[face.cheeks[1].id](paper, face.cheeks[1].lr, face.cheeks[1].cx, face.cheeks[1].cy);
+
         eyebrow[face.eyebrows[0].id](paper, face.eyebrows[0].lr, face.eyebrows[0].cx, face.eyebrows[0].cy);
         eyebrow[face.eyebrows[1].id](paper, face.eyebrows[1].lr, face.eyebrows[1].cx, face.eyebrows[1].cy);
 
@@ -805,7 +892,7 @@
 
         nose[face.nose.id](paper, face.nose.cx, face.nose.cy, face.nose.size, face.nose.posY, face.nose.flip);
         mouth[face.mouth.id](paper, face.mouth.cx, face.mouth.cy);
-        hair[face.hair.id](paper, face.fatness);
+        hair[face.hair.id](paper, face.fatness, face.hair.color, face.hair.density, face.hair.angle);
     }
 
     /**
@@ -814,19 +901,43 @@
      * @param {string|Object=} container Either the DOM element of the div that the face will appear in, or a string containing its id. If not given, no face is drawn and the face object is simply returned.
      * @return {Object} Randomly generated face object.
      */
-    function generate(container, showAffect) {
+    function randomizeEyebrows (face) {
+        var id = randomObjectKey(eyebrow,face.eyebrows[0].id);
+        face.eyebrows[0] = {id: id, lr: "l", cx: 135, cy: 250};
+        face.eyebrows[1] = {id: id, lr: "r", cx: 265, cy: 250};
+    }
+
+    function randomizeEyes (face) {
+	var angle = Math.random() * 50 - 20;
+	var id = randomObjectKey(eye,face.eyes[0].id);
+        face.eyes[0] = {id: id, lr: "l", cx: 135, cy: 280, angle: angle};
+        face.eyes[1] = {id: id, lr: "r", cx: 265, cy: 280, angle: angle};
+    }
+
+    function randomizeMouth (face) {
+        face.mouth = {id: randomObjectKey(mouth,face.mouth.id), cx: 200, cy: 400};
+    }
+
+    function randomizeCheeks (face) {
+	var id = randomObjectKey(cheeks,face.cheeks.id)
+        face.cheeks[0] = {id: id, lr: "l", cx: 125, cy: 360};
+        face.cheeks[1] = {id: id, lr: "r", cx: 275, cy: 360};
+    }
+
+    function generate(container, showAffects) {
         var angle, colors, face, flip, id;
 
-        face = {head: {}, eyebrows: [{}, {}], eyes: [{}, {}], nose: {}, mouth: {}, hair: {}};
+        face = {head: {}, eyebrows: [{}, {}], eyes: [{}, {}], nose: {}, mouth: {}, cheeks: [{}, {}], hair: {}};
         face.fatness = Math.random();
         colors = ["#FFDFC4","#F0D5BE","#EECEB3","#E1B899","#E5C298","#FFDCB2","#E5B887","#E5A073","#E79E6D","#DB9065","#CE967C","#C67856","#BA6C49","#A57257","#F0C8C9","#DDA8A0","#B97C6D","#A8756C","#AD6452","#5C3836","#CB8442","#BD723C","#704139","#A3866A"];  // Pantone skin tones, give or take a few
         face.color = colors[randomArrayIndex(colors)];
 
         face.head = {id: randomObjectKey(head)};
 
-        id = randomObjectKey(eyebrow);
-        face.eyebrows[0] = {id: id, lr: "l", cx: 135, cy: 250};
-        face.eyebrows[1] = {id: id, lr: "r", cx: 265, cy: 250};
+	randomizeEyebrows (face);
+	randomizeEyes (face);
+	randomizeMouth (face);
+	randomizeCheeks (face);
 
         angle = Math.random() * 50 - 20;
         id = randomObjectKey(eye);
@@ -836,21 +947,42 @@
         flip = Math.random() > 0.5 ? true : false;
         face.nose = {id: randomObjectKey(nose), lr: "l", cx: 200, cy: 330, size: Math.random(), posY: undefined, flip: flip};
 
-        face.mouth = {id: randomObjectKey(mouth), cx: 200, cy: 400};
+	colors = ["#090806","#2C222B","#71635A","#B7A69E","#D6C4C2","#CABFB1","#DCD0BA","#FFF5E1","#E6CEA8","#E5C8A8","#DEBC99","#B89778","#A56B46","#B55239","#8D4A43","#91553D","#533D32","#3B3024","#554838","#4E433F","#504444","#6A4E42","#A7856A","#977961"]  // hair colors from http://www.collectedwebs.com/art/colors/hair/
+	angle = Math.random() * 60 - 20
+        face.hair = {id: randomObjectKey(hair), density: Math.random(), angle: angle, color: colors[randomArrayIndex(colors)]};
 
-        face.hair = {id: randomObjectKey(hair)};
-
-        face.affect = affect;
+        face.affects = affects;
         
         if (typeof container !== "undefined") {
-            display(container, face, showAffect);
+            display(container, face, showAffects);
         }
-        
-        return face;
+
+	return face;
+    }
+
+    // mutate a face to a new (single-emotion) affect
+    function mutate (face, newAffect) {
+	var oldAffects = face.affects()
+	while (!newAffect) {
+	    var emotion = allEmotions[randomArrayIndex(allEmotions)]
+	    if (oldAffects.length == allEmotions.length
+		|| !oldAffects.find (function (e) { return emotion == e }))
+		newAffect = emotion
+	}
+
+	var newAffects
+	do {
+	    randomizeEyebrows (face);
+	    randomizeEyes (face);
+	    randomizeMouth (face);
+	    randomizeCheeks (face);
+	    newAffects = face.affects()
+	} while (newAffects.length > 1 || !newAffects.find (function (e) { return newAffect == e }))
     }
 
     return {
         display: display,
-        generate: generate
+        generate: generate,
+	mutate: mutate
     };
 }));

@@ -74,6 +74,7 @@
         <div id="c11"></div>
       </div>
       <p><i>To load new random faces, <a href="javascript:newFaces()">click here</a> or press "r" on your keyboard.</i></p>
+      <p><i>To change a face's emotional affect (mood), click on the face; or press "m" on your keyboard to change all the faces' moods.</i></p>
       <p>faces.js is a JavaScript library that generates and displays cartoon faces, somewhat reminiscent of how the Nintendo Wii generates random Miis. Faces are drawn as scalable vector graphics (SVG). Each face can also be represented by a small JavaScript object, which allows you to store that object and then draw the same face again later.</p>
       <p>As you can probably tell, the number of options for each facial feature (eyes, nose, mouth, etc.) is fairly limited, and some of the current options are fairly crude. So <b><a href="https://github.com/dumbmatter/facesjs">fork it on GitHub</a></b> and add some new options!</p>
       <h2>Usage</h2>
@@ -116,19 +117,36 @@
 
 <script src="faces.js"></script>
 <script>
+var faceList = []
 function newFaces() {
   var i;
   for (i = 0; i < 12; i++) {
-    document.getElementById("c" + i).style.backgroundColor = "#" + Math.random().toString(16).slice(2, 8);
-    faces.generate("c" + i, true);
+    var ci = document.getElementById("c" + i)
+    ci.style.backgroundColor = "#" + Math.random().toString(16).slice(2, 8);
+    ci.addEventListener ('click', mutateFace.bind(null,i));
+    faceList[i] = faces.generate("c" + i, true);
   }
 }
 newFaces(); // Generate faces for initial page load
 
-// Generate new faces when "r" is pressed
+function mutateFace(i) {
+    faces.mutate(faceList[i]);
+    faces.display("c" + i, faceList[i], true);
+}
+
+function mutateFaces() {
+  var i;
+  for (i = 0; i < 12; i++) {
+    mutateFace(i);
+  }
+}
+
+// Generate new faces when "r" is pressed, or mutate them when "m" is pressed
 document.addEventListener("keydown", function (e) {
     if (e.keyCode === 82 && !e.ctrlKey) { // 82 is "r"
       newFaces();
+    } else if (e.keyCode === 77 && !e.ctrlKey) { // 77 is "m"
+      mutateFaces();
     }
 }, false);
 </script>
