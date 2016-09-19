@@ -120,7 +120,7 @@ function newFaces() {
   var i;
   for (i = 0; i < 12; i++) {
     document.getElementById("c" + i).style.backgroundColor = "#" + Math.random().toString(16).slice(2, 8);
-    faces.generate("c" + i);
+    faces.generate("c" + i, true);
   }
 }
 newFaces(); // Generate faces for initial page load
