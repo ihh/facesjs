@@ -1030,11 +1030,15 @@
     }
 
     // generate a face for each emotion
-    function generateSet (mutProb) {
-	var faceSet = {}
-	var face = generate()
+    function generateSet (face, mutProb) {
+        var faceSet = {}
+        face = face || generate()
+        var affects = affects(face)
 	allEmotions.forEach (function (emotion) {
-	    faceSet[emotion] = mutate (deepCopy(face), mutProb, emotion)
+            if (affects.length == 1 && affects[0] == emotion)
+                faceSet[emotion] = face
+            else
+	        faceSet[emotion] = mutate (deepCopy(face), mutProb, emotion)
 	})
 	return faceSet
     }
