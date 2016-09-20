@@ -75,7 +75,7 @@
 
     var allEmotions = ['happy', 'angry', 'sad', 'surprised']
     var emotiveFeatures = ['eyebrows', 'eyes', 'cheeks', 'mouth']
-    var unemotiveFeatures = ['head', 'nose', 'hair']
+    var unemotiveFeatures = ['global', 'head', 'nose', 'hair']
     function affects (face) {
         var emotionScore = {}
 	allEmotions.forEach (function (emotion) { emotionScore[emotion] = 0 })
@@ -908,7 +908,7 @@
         // if config contains 'base' field, then merge it with 'face'
         // this allows for more compact representation of multiple affects
         if (config.base)
-            face = Object.assign (deepCopy(base), face)
+            face = Object.assign (deepCopy(config.base), face)
 
         var paper;
 
@@ -951,7 +951,7 @@
             defaults = defaults || {}
             var args = [paper].concat (argKeys.map (function (key, n) {
                 var val = obj[key]
-                if (typeof val === 'undefined') val = face[key]
+                if (typeof val === 'undefined') val = face.global[key]
                 if (typeof val === 'undefined') val = defaults[key]
                 return val
             }))
@@ -1037,10 +1037,10 @@
         var showAffects = config.showAffects
         var angle, colors, face, flip, id;
 
-        face = {head: {}, eyebrows: [{}, {}], eyes: [{}, {}], nose: {}, mouth: {}, cheeks: [{}, {}], hair: {}};
-        face.fatness = randomRational(2);
+        face = {global: {}, head: {}, eyebrows: [{}, {}], eyes: [{}, {}], nose: {}, mouth: {}, cheeks: [{}, {}], hair: {}};
+        face.global.fatness = randomRational(2);
         colors = ["#FFDFC4","#F0D5BE","#EECEB3","#E1B899","#E5C298","#FFDCB2","#E5B887","#E5A073","#E79E6D","#DB9065","#CE967C","#C67856","#BA6C49","#A57257","#F0C8C9","#DDA8A0","#B97C6D","#A8756C","#AD6452","#5C3836","#CB8442","#BD723C","#704139","#A3866A"];  // Pantone skin tones, give or take a few
-        face.color = colors[randomArrayIndex(colors)];
+        face.global.color = colors[randomArrayIndex(colors)];
 
         face.head = {id: randomObjectKey('head')};
 
