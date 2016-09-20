@@ -892,8 +892,8 @@
         paper.setAttribute("baseProfile", "tiny");
         paper.setAttribute("width", "100%");
         paper.setAttribute("height", "100%");
-        paper.setAttribute("viewBox", "0 0 400 600");
-        paper.setAttribute("preserveAspectRatio", "xMinYMin meet");
+        paper.setAttribute("viewBox", "0 0 400 550");
+        paper.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
         if (showAffects) {
             var div = document.createElement('div');
