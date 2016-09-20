@@ -333,7 +333,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eyebrow, 'angryStraightBrows', {angry:+1,sad:.75}, function (paper, lr, cx, cy) {
+    addFeature (eyebrow, 'angryStraightBrows', {angry:+1}, function (paper, lr, cx, cy) {
         // angry straight lines
         var e, x = cx - 30, y = cy - 10;
 
