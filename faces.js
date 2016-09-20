@@ -840,15 +840,15 @@
 	});
     }
 
-    addFeature (cheeks, 'redCheeks', {sad:-1}, function (paper, lr, cx, cy) {
-	makeCheeks (paper, lr, cx, cy, 20, '#f00', .2, 'redCheek')
+    addFeature (cheeks, 'redCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
+	makeCheeks (paper, lr, cx, cy, fatness, 20, '#f00', .2, 'redCheek')
     });
 
-    addFeature (cheeks, 'bigRedCheeks', {sad:-1}, function (paper, lr, cx, cy) {
-	makeCheeks (paper, lr, cx, cy, 30, '#f00', .2, 'bigRedCheek')
+    addFeature (cheeks, 'bigRedCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
+	makeCheeks (paper, lr, cx, cy, fatness, 30, '#f00', .2, 'bigRedCheek')
     });
 
-    function makeCheeks (paper, lr, cx, cy, r, color, opacity, tag) {
+    function makeCheeks (paper, lr, cx, cy, fatness, r, color, opacity, tag) {
 	var defs = newDefs(paper);
 	tag = tag + "Gradient" + lr.toUpperCase()
 	defs.innerHTML = '<radialGradient id="'+tag+'" fx="50%" fy="50%" cx="50%" cy="50%" r="75%"><stop offset="0%" stop-color="'+color+'" stop-opacity="'+opacity+'"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></radialGradient>';
@@ -856,6 +856,7 @@
         e.setAttribute("d", "M " + (lr==="l" ? (cx-r/2) : (cx+r/2)) + "," + (cy+r) +
                        "a "+r+","+r+" 0 1 1 0.1,0");
         e.setAttribute("fill", "url(#"+tag+")");
+        scaleCentered(e, fatScale(fatness), 1);
     }
   
     function randomArrayIndex(array) {
@@ -910,8 +911,8 @@
 
         head[face.head.id](paper, face.fatness, face.color);
 
-        cheeks[face.cheeks[0].id](paper, face.cheeks[0].lr, face.cheeks[0].cx, face.cheeks[0].cy);
-        cheeks[face.cheeks[1].id](paper, face.cheeks[1].lr, face.cheeks[1].cx, face.cheeks[1].cy);
+        cheeks[face.cheeks[0].id](paper, face.cheeks[0].lr, face.cheeks[0].cx, face.cheeks[0].cy, face.fatness);
+        cheeks[face.cheeks[1].id](paper, face.cheeks[1].lr, face.cheeks[1].cx, face.cheeks[1].cy, face.fatness);
 
         eyebrow[face.eyebrows[0].id](paper, face.eyebrows[0].lr, face.eyebrows[0].cx, face.eyebrows[0].cy);
         eyebrow[face.eyebrows[1].id](paper, face.eyebrows[1].lr, face.eyebrows[1].cx, face.eyebrows[1].cy);
