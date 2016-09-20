@@ -868,7 +868,8 @@
 	var key
 	do {
             key = keys[randomArrayIndex(keys)]
-	} while (oldKey && featureInfo[oldKey] && featureInfo[oldKey].type
+	} while (oldKey && featureInfo[oldKey]
+                 && (featureInfo[key].type || featureInfo[oldKey].type)
 		 && featureInfo[key].type != featureInfo[oldKey].type)
 	return key
     }
