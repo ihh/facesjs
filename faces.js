@@ -110,9 +110,6 @@
             } else if (emotionScore[emotion] == maxScore)
                 maxEmotions.push (emotion)
         })
-//        console.log(taggedFeatures.map(function(obj){return obj.id}).concat(['eye angle: ' + eyeAngle]))
-//        console.log(emotionScore)
-//        console.log("Net affect: " + maxEmotions.join('/'))
         return maxEmotions
     }
     
@@ -341,7 +338,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature ('eyes', 'horizontalEyes', {angry:-.5,surprised:-.5}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'horizontalEyes', {angry:-.5,surprised:-1}, function (paper, lr, cx, cy, angle) {
         // Horizontal
         var e, x = cx - 30, y = cy;
 
@@ -847,6 +844,15 @@
         scaleCentered(e, fatScale(fatness), 1);
     }
 
+    // figure out which features have types
+    // this is important because when generating a set of faces, we want to make sure the base face has well-typed features
+    var featuresWithTypes = Object.keys(featureInfo).filter (function (feature) {
+        var info = featureInfo[feature]
+        return Object.keys(info).find (function (key) {
+            return info[key].type
+        })
+    })
+    
     // random integers
     function randomInt(min,max) {
         return Math.round (min + Math.random() * (max - min))
@@ -867,14 +873,13 @@
     function randomObjectKey(feature,oldKey) {
         // if oldKey is specified, we will use it to match the type of the old & new keys
         // this allows us to mutate a face without changing e.g. the eye type
-        var obj = featureInfo[feature]
-        var keys = Object.keys (obj)
+        var info = featureInfo[feature]
+        var oldType = oldKey && info[oldKey] && info[oldKey].type
+        var keys = Object.keys (info)
         var weight = keys.map (function (key) {
-            if (oldKey && featureInfo[oldKey]
-                && (featureInfo[key].type || featureInfo[oldKey].type)
-		&& featureInfo[key].type != featureInfo[oldKey].type)
+            if (oldType && info[key].type && info[key].type != oldType)
                 return 0
-            return obj[key].hasOwnProperty('weight') ? obj[key].weight : 1
+            return info[key].hasOwnProperty('weight') ? info[key].weight : 1
         })
         var totalWeight = weight.reduce (function(sum,summand){return sum+summand}, 0)
         var w = Math.random() * totalWeight
@@ -1032,7 +1037,7 @@
     }
 
     function generate(config) {
-        // if called with one argument, treat it as the container
+        // if called with a string argument, treat it as the container
         config = config || {}
         if (typeof(config) === 'string')
             config = {container:config}
@@ -1068,7 +1073,9 @@
                      angle: angle, color: colors[randomArrayIndex(colors)]};
         
         if (typeof container !== "undefined") {
-            display(container, face, config.showAffects);
+            display({ container: container,
+                      face: face,
+                      showAffects: config.showAffects });
         }
 
 	return face;
@@ -1085,8 +1092,9 @@
 		newAffect = emotion
 	}
 
-	var newAffects
+	var newAffects, oldFace = face
 	do {
+            face = deepCopy (oldFace)
 	    if (Math.random() < mutProb)
 		randomizeEyebrows (face);
 	    if (Math.random() < mutProb)
@@ -1096,7 +1104,7 @@
 	    if (Math.random() < mutProb)
 		randomizeCheeks (face);
 	    newAffects = affects(face)
-	} while (newAffects.length > 1 || !newAffects.find (function (e) { return newAffect == e }))
+	} while (newAffects.length != 1 || newAffects[0] != newAffect)
 
 	return face
     }
@@ -1109,6 +1117,12 @@
         
     function getEmotiveFeatures (face) { return extract (face, emotiveFeatures) }
     function getUnemotiveFeatures (face) { return extract (face, unemotiveFeatures) }
+
+    function getFeatureType (face, feature) {
+        var f = face[feature]
+        if (isArray(f)) f = f[0]
+        return featureInfo[feature][f.id].type
+    }
     
     // generate a face for each emotion
     function generateSet (face, mutProb) {
@@ -1116,7 +1130,10 @@
         if (!face) {
             do {
                 face = generate()
-            } while (affects(face).length > 1)
+            } while (affects(face).length > 1
+                     || featuresWithTypes.find (function (feature) {
+                         return !getFeatureType (face, feature)
+                     }))
         }
         faceSet.base = getUnemotiveFeatures (face)
         var aff = affects(face)
@@ -1124,7 +1141,7 @@
             if (aff.length == 1 && aff[0] == emotion)
                 faceSet[emotion] = face
             else
-	        faceSet[emotion] = getEmotiveFeatures (mutate (deepCopy(face), mutProb, emotion))
+	        faceSet[emotion] = getEmotiveFeatures (mutate(face, mutProb, emotion))
 	})
 	return faceSet
     }
@@ -1134,6 +1151,8 @@
         generate: generate,
 	mutate: mutate,
 	affects: affects,
+        getFeatureType: getFeatureType,
+        randomObjectKey: randomObjectKey,
 	generateSet: generateSet
     };
 }));

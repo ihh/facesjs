@@ -131,7 +131,7 @@ newFaces(); // Generate faces for initial page load
 
 function mutateFace(i) {
     faceList[i] = faces.mutate(faceList[i],.1);
-    faces.display("c" + i, faceList[i], true);
+    faces.display ({ container: "c" + i, face: faceList[i], showAffects: true });
 }
 
 function mutateFaces() {
