@@ -823,14 +823,10 @@
         // Intentionally left blank (bald)
     });
 
-    // want red cheeks to be rare
-    // a quick/hacky way of upweighting blank cheeks is to add it multiple times with different tags
-    // TODO: add a more flexible weighting scheme
-    for (var i = 1; i <= 10; ++i) {
-	addFeature ('cheeks', 'noCheekColor' + i, {}, function () {
-            // Intentionally left blank (no cheek color)
-	});
-    }
+    // want red cheeks to be rare, so upweight blank cheeks
+    addFeature ('cheeks', 'noCheekColor', {weight:10}, function () {
+        // Intentionally left blank (no cheek color)
+    });
 
     addFeature ('cheeks', 'redCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
 	makeCheeks (paper, lr, cx, cy, fatness, 20, '#f00', .2, 'redCheek')
@@ -869,15 +865,23 @@
     }
 
     function randomObjectKey(feature,oldKey) {
+        // if oldKey is specified, we will use it to match the type of the old & new keys
+        // this allows us to mutate a face without changing e.g. the eye type
         var obj = featureInfo[feature]
         var keys = Object.keys (obj)
-	var key
-	do {
-            key = keys[randomArrayIndex(keys)]
-	} while (oldKey && featureInfo[oldKey]
-                 && (featureInfo[key].type || featureInfo[oldKey].type)
-		 && featureInfo[key].type != featureInfo[oldKey].type)
-	return key
+        var weight = keys.map (function (key) {
+            if (oldKey && featureInfo[oldKey]
+                && (featureInfo[key].type || featureInfo[oldKey].type)
+		&& featureInfo[key].type != featureInfo[oldKey].type)
+                return 0
+            return obj[key].hasOwnProperty('weight') ? obj[key].weight : 1
+        })
+        var totalWeight = weight.reduce (function(sum,summand){return sum+summand}, 0)
+        var w = Math.random() * totalWeight
+        for (var i = 0; i < weight.length; ++i)
+            if ((w -= weight[i]) <= 0)
+                return keys[i]
+	return undefined  // should never get here
     }
 
     // seeded pseudorandom numbers (for reproducible effects, e.g. messed-up hair)
