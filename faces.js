@@ -1033,9 +1033,9 @@
     function generateSet (face, mutProb) {
         var faceSet = {}
         face = face || generate()
-        var affects = affects(face)
+        var aff = affects(face)
 	allEmotions.forEach (function (emotion) {
-            if (affects.length == 1 && affects[0] == emotion)
+            if (aff.length == 1 && aff[0] == emotion)
                 faceSet[emotion] = face
             else
 	        faceSet[emotion] = mutate (deepCopy(face), mutProb, emotion)
