@@ -991,7 +991,8 @@
         flip = Math.random() > 0.5 ? true : false;
         face.nose = {id: randomObjectKey(nose), lr: "l", cx: 200, cy: 330, size: Math.random(), posY: undefined, flip: flip};
 
-	colors = ["#090806","#2C222B","#71635A","#B7A69E","#D6C4C2","#CABFB1","#DCD0BA","#FFF5E1","#E6CEA8","#E5C8A8","#DEBC99","#B89778","#A56B46","#B55239","#8D4A43","#91553D","#533D32","#3B3024","#554838","#4E433F","#504444","#6A4E42","#A7856A","#977961"]  // hair colors from http://www.collectedwebs.com/art/colors/hair/
+	colors = [ // "#090806",   /* disable black for now */
+                  "#2C222B","#71635A","#B7A69E","#D6C4C2","#CABFB1","#DCD0BA","#FFF5E1","#E6CEA8","#E5C8A8","#DEBC99","#B89778","#A56B46","#B55239","#8D4A43","#91553D","#533D32","#3B3024","#554838","#4E433F","#504444","#6A4E42","#A7856A","#977961"]  // hair colors from http://www.collectedwebs.com/art/colors/hair/
 	angle = Math.random() * 60 - 20
         face.hair = {id: randomObjectKey(hair), density: Math.random(), angle: angle, color: colors[randomArrayIndex(colors)]};
         
