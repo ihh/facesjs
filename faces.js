@@ -1033,7 +1033,11 @@
     // generate a face for each emotion
     function generateSet (face, mutProb) {
         var faceSet = {}
-        face = face || generate()
+        if (!face) {
+            do {
+                face = generate()
+            } while (affects(face).length > 1)
+        }
         var aff = affects(face)
 	allEmotions.forEach (function (emotion) {
             if (aff.length == 1 && aff[0] == emotion)
