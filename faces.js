@@ -14,7 +14,6 @@
 }(this, function () {
     "use strict";
 
-    var eye = {}, eyebrow = {}, hair = {}, head = {}, mouth = {}, nose = {}, cheeks = {};
     var featureInfo = {};
     
     function newPath(paper) {
@@ -66,24 +65,26 @@
         return 0.75 + 0.25 * fatness;
     }
 
-    function addFeature (obj, id, affect, func) {
-        obj[id] = func;
-        featureInfo[id] = {};
+    function addFeature (feature, id, affect, func) {
+        featureInfo[feature] = featureInfo[feature] || {}
+        featureInfo[feature][id] = { func: func, affect: {} }
         Object.keys(affect).forEach (function (emotion) {
-            featureInfo[id][emotion] = affect[emotion];
+            featureInfo[feature][id][emotion] = affect[emotion];
         });
     }
 
     var allEmotions = ['happy', 'angry', 'sad', 'surprised']
+    var emotiveFeatures = ['eyebrows', 'eyes', 'cheeks', 'mouth']
+    var unemotiveFeatures = ['head', 'nose', 'hair']
     function affects (face) {
         var emotionScore = {}
 	allEmotions.forEach (function (emotion) { emotionScore[emotion] = 0 })
 
-        var taggedFeatures = [face.eyebrows[0], face.eyes[0], face.cheeks[0], face.mouth]
-        taggedFeatures.forEach (function (obj) {
+        emotiveFeatures.forEach (function (key) {
+            var obj = isArray(face[key]) ? face[key][0] : face[key]
             var id = obj.id
-            Object.keys (featureInfo[id]).forEach (function (emotion) {
-                emotionScore[emotion] += featureInfo[id][emotion]
+            Object.keys (featureInfo[key][id]).forEach (function (emotion) {
+                emotionScore[emotion] += featureInfo[key][id][emotion]
             })
         })
 
@@ -114,18 +115,8 @@
 //        console.log("Net affect: " + maxEmotions.join('/'))
         return maxEmotions
     }
-
-    // seeded pseudorandom numbers
-    var seed = 6;
-    function seedRandomNumbers (newSeed) {  // 0 <= newSeed < 1
-	seed = Math.floor (newSeed * 233280)
-    }
-    function randomNumber() {
-	seed = (seed * 9301 + 49297) % 233280;
-	return seed / 233280;
-    }
     
-    addFeature (head, 'genericHead', {}, function (paper, fatness, color) {
+    addFeature ('head', 'genericHead', {}, function (paper, fatness, color) {
         // generic
         var e;
 
@@ -139,7 +130,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'eggLike', {}, function (paper, fatness, color) {
+    addFeature ('head', 'eggLike', {}, function (paper, fatness, color) {
         // egg-like
         var e;
 
@@ -153,7 +144,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'pointyChin', {}, function (paper, fatness, color) {
+    addFeature ('head', 'pointyChin', {}, function (paper, fatness, color) {
         // pointy chin
         var e;
 
@@ -167,7 +158,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'squareJaw', {}, function (paper, fatness, color) {
+    addFeature ('head', 'squareJaw', {}, function (paper, fatness, color) {
         // square jaw
         var e;
 
@@ -182,7 +173,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'slightDoubleChin', {}, function (paper, fatness, color) {
+    addFeature ('head', 'slightDoubleChin', {}, function (paper, fatness, color) {
         // slight double chin
         var e;
 
@@ -197,7 +188,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'saggyCheeksDoubleChin', {}, function (paper, fatness, color) {
+    addFeature ('head', 'saggyCheeksDoubleChin', {}, function (paper, fatness, color) {
         // saggy cheeks and double chin
         var e;
 
@@ -212,7 +203,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'saggyCheeks', {}, function (paper, fatness, color) {
+    addFeature ('head', 'saggyCheeks', {}, function (paper, fatness, color) {
         // saggy cheeks
         var e;
 
@@ -226,7 +217,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'verySaggyCheeks', {}, function (paper, fatness, color) {
+    addFeature ('head', 'verySaggyCheeks', {}, function (paper, fatness, color) {
         // very saggy cheeks
         var e;
 
@@ -240,7 +231,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'narrowCheeks', {}, function (paper, fatness, color) {
+    addFeature ('head', 'narrowCheeks', {}, function (paper, fatness, color) {
         // saggy but narrow cheeks
         var e;
 
@@ -254,7 +245,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'pinchedCheeks', {}, function (paper, fatness, color) {
+    addFeature ('head', 'pinchedCheeks', {}, function (paper, fatness, color) {
         // pinched cheeks
         var e;
 
@@ -268,7 +259,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (head, 'veryPinchedCheeks', {}, function (paper, fatness, color) {
+    addFeature ('head', 'veryPinchedCheeks', {}, function (paper, fatness, color) {
         // very pinched cheeks
         var e;
 
@@ -282,7 +273,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (eyebrow, 'downCurvedBrows', {angry:+.6}, function (paper, lr, cx, cy) {
+    addFeature ('eyebrows', 'downCurvedBrows', {angry:+.6}, function (paper, lr, cx, cy) {
         // down-curved
         var e, x = cx - 30, y = cy - 10;
 
@@ -299,7 +290,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eyebrow, 'furrowedBrows', {angry:+.5,sad:+.25}, function (paper, lr, cx, cy) {
+    addFeature ('eyebrows', 'furrowedBrows', {angry:+.5,sad:+.25}, function (paper, lr, cx, cy) {
         // furrowed
         var e, x = cx - 30, y = cy - 20;
 
@@ -316,7 +307,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eyebrow, 'upCurvedBrows', {}, function (paper, lr, cx, cy) {
+    addFeature ('eyebrows', 'upCurvedBrows', {}, function (paper, lr, cx, cy) {
         // generic up-curved
         var e, x = cx - 30, y = cy;
 
@@ -333,7 +324,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eyebrow, 'angryStraightBrows', {angry:+1}, function (paper, lr, cx, cy) {
+    addFeature ('eyebrows', 'angryStraightBrows', {angry:+1}, function (paper, lr, cx, cy) {
         // angry straight lines
         var e, x = cx - 30, y = cy - 10;
 
@@ -350,7 +341,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (eye, 'horizontalEyes', {angry:-.5,surprised:-.5}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'horizontalEyes', {angry:-.5,surprised:-.5}, function (paper, lr, cx, cy, angle) {
         // Horizontal
         var e, x = cx - 30, y = cy;
 
@@ -362,7 +353,7 @@
         e.setAttribute("fill", "none");
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
-    addFeature (eye, 'normalEyes', {type:'normal'}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'normalEyes', {type:'normal'}, function (paper, lr, cx, cy, angle) {
         // Normal (circle with a dot in it)
         var e, x = cx, y = cy + 20;
 
@@ -380,7 +371,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'normalEyesWide', {type:'normal',angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'normalEyesWide', {type:'normal',angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
         // Bigger eyes, bigger pupils
         var e, x = cx, y = cy + 20;
 
@@ -398,7 +389,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'dotEyes', {type:'dot'}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'dotEyes', {type:'dot'}, function (paper, lr, cx, cy, angle) {
         // Dot
         var e, x = cx, y = cy + 13;
 
@@ -408,7 +399,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'dotEyesWide', {type:'dot',angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'dotEyesWide', {type:'dot',angry:+1,surprised:+1}, function (paper, lr, cx, cy, angle) {
         // Dot
         var e, x = cx, y = cy + 10;
 
@@ -418,7 +409,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'arcEyelid', {type:'arc'}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'arcEyelid', {type:'arc'}, function (paper, lr, cx, cy, angle) {
         // Arc eyelid
         var e, x = cx, y = cy + 20;
 
@@ -436,7 +427,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'arcEyelidWide', {type:'arc',angry:+.7,surprised:+.5}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'arcEyelidWide', {type:'arc',angry:+.7,surprised:+.5}, function (paper, lr, cx, cy, angle) {
         // Arc eyelid, 10% bigger
         var e, x = cx, y = cy + 18;
 
@@ -454,7 +445,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (eye, 'normalEyesCrossed', {type:'normal',angry:+.5,surprised:+.4}, function (paper, lr, cx, cy, angle) {
+    addFeature ('eyes', 'normalEyesCrossed', {type:'normal',angry:+.5,surprised:+.4}, function (paper, lr, cx, cy, angle) {
         // Cross-eyed (circle with a dot in it, shifted closer to center)
         var e, x = cx, y = cy + 20;
 
@@ -472,7 +463,7 @@
         rotateCentered(e, (lr === "l" ? angle : -angle));
     });
 
-    addFeature (nose, 'vNose', {}, function (paper, cx, cy, size) {
+    addFeature ('nose', 'vNose', {}, function (paper, cx, cy, size) {
         // V
         var e, scale = size + 0.5, x = cx - 30, y = cy;
 
@@ -485,7 +476,7 @@
         e.setAttribute("fill", "none");
         scaleCentered(e, scale, scale);
     });
-    addFeature (nose, 'pinnochioNose', {}, function (paper, cx, cy, size, posY, flip) {
+    addFeature ('nose', 'pinnochioNose', {}, function (paper, cx, cy, size, posY, flip) {
         // Pinnochio
         var e, scale = size + 0.5, x = cx, y = cy - 10;
 
@@ -501,7 +492,7 @@
             scaleCentered(e, scale, scale);
         }
     });
-    addFeature (nose, 'bigSingleNose', {}, function (paper, cx, cy, size) {
+    addFeature ('nose', 'bigSingleNose', {}, function (paper, cx, cy, size) {
         // Big single
         var e, scale = size + 0.5, x = cx - 9, y = cy - 25;
 
@@ -515,7 +506,7 @@
         scaleCentered(e, scale, scale);
     });
 
-    addFeature (mouth, 'thinSmile', {happy:+2.5}, function (paper, cx, cy) {
+    addFeature ('mouth', 'thinSmile', {happy:+2.5}, function (paper, cx, cy) {
         // Thin smile
         var e, x = cx - 75, y = cy - 15;
 
@@ -526,7 +517,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'thinFrownMouth', {angry:+1,sad:+1.5}, function (paper, cx, cy) {
+    addFeature ('mouth', 'thinFrownMouth', {angry:+1,sad:+1.5}, function (paper, cx, cy) {
         // Thin downturn
         var e, x = cx - 75, y = cy + 15;
 
@@ -537,7 +528,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'thinFlatMouth', {angry:+.25,sad:+.6}, function (paper, cx, cy) {
+    addFeature ('mouth', 'thinFlatMouth', {angry:+.25,sad:+.6}, function (paper, cx, cy) {
         // Thin flat
         var e, x = cx - 55, y = cy;
 
@@ -548,7 +539,7 @@
         e.setAttribute("stroke-width", "8");
         e.setAttribute("fill", "none");
     });
-    addFeature (mouth, 'openSmile', {happy:+3}, function (paper, cx, cy) {
+    addFeature ('mouth', 'openSmile', {happy:+3}, function (paper, cx, cy) {
         // Open-mouthed smile, top teeth
         var e, x = cx - 75, y = cy - 15;
 
@@ -565,7 +556,7 @@
                        "h -118");
         e.setAttribute("fill", "#f0f0f0");
     });
-    addFeature (mouth, 'openSnarl', {angry:+1,sad:+1.1}, function (paper, cx, cy) {
+    addFeature ('mouth', 'openSnarl', {angry:+1,sad:+1.1}, function (paper, cx, cy) {
         // Open-mouthed snarl, bottom teeth
         var e, x = cx - 75, y = cy + 25;
 
@@ -582,7 +573,7 @@
                        "h -118");
         e.setAttribute("fill", "#f0f0f0");
     });
-    addFeature (mouth, 'openMouth', {surprised:+1,angry:.25}, function (paper, cx, cy) {
+    addFeature ('mouth', 'openMouth', {surprised:+1,angry:.25}, function (paper, cx, cy) {
         // Generic open mouth
         var e, x = cx - 55, y = cy;
 
@@ -591,7 +582,7 @@
                        "a 54,10 0 1 1 110,0" +
                        "a 54,20 0 1 1 -110,0");
     });
-    addFeature (mouth, 'surprisedMouth', {surprised:+1}, function (paper, cx, cy) {
+    addFeature ('mouth', 'surprisedMouth', {surprised:+1}, function (paper, cx, cy) {
         // Surprised "O" mouth
         var e, x = cx - 25, y = cy + 10;
 
@@ -600,7 +591,7 @@
                        "a 25,25 0 1 1 50,0" +
                        "a 25,25 0 1 1 -50,0");
     });
-    addFeature (mouth, 'surprisedWithTeeth', {surprised:+1,angry:+.3}, function (paper, cx, cy) {
+    addFeature ('mouth', 'surprisedWithTeeth', {surprised:+1,angry:+.3}, function (paper, cx, cy) {
         // Surprised "O" mouth with teeth
         var e, x = cx - 25, y = cy + 10;
 
@@ -622,7 +613,7 @@
         e.setAttribute("fill", "#f0f0f0");
     });
 
-    addFeature (mouth, 'surprisedWithPointyTeeth', {surprised:+1,angry:+.8}, function (paper, cx, cy) {
+    addFeature ('mouth', 'surprisedWithPointyTeeth', {surprised:+1,angry:+.8}, function (paper, cx, cy) {
         // Surprised "O" mouth with pointy teeth
         var e, x = cx - 25, y = cy + 10;
 
@@ -644,7 +635,7 @@
         e.setAttribute("fill", "#f0f0f0");
     });
 
-    addFeature (mouth, 'thinSmileWithEnds', {happy:+3}, function (paper, cx, cy) {
+    addFeature ('mouth', 'thinSmileWithEnds', {happy:+3}, function (paper, cx, cy) {
         // Thin smile with ends
         var e, x = cx - 75, y = cy - 15;
 
@@ -670,7 +661,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (mouth, 'thinFrownMouthWithEnds', {sad:+1.5,angry:+1}, function (paper, cx, cy) {
+    addFeature ('mouth', 'thinFrownMouthWithEnds', {sad:+1.5,angry:+1}, function (paper, cx, cy) {
         // Thin downturn with ends
         var e, x = cx - 75, y = cy + 15;
 
@@ -696,7 +687,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature (mouth, 'blockySnarl', {angry:+1}, function (paper, cx, cy) {
+    addFeature ('mouth', 'blockySnarl', {angry:+1}, function (paper, cx, cy) {
         // Snarl with upper left corner raised & upper & lower teeth showing
         var e, x = cx - 50, y = cy - 25;
 
@@ -715,7 +706,7 @@
         e.setAttribute("fill", "#f0f0f0");
     });
 
-    addFeature (hair, 'shortHair', {}, function (paper, fatness, color) {
+    addFeature ('hair', 'shortHair', {}, function (paper, fatness, color) {
         // Normal short
         var e;
 
@@ -727,7 +718,7 @@
         scaleCentered(e, fatScale(fatness), 1);
 	e.setAttribute ("fill", color);
     });
-    addFeature (hair, 'flatTopHair', {}, function (paper, fatness, color) {
+    addFeature ('hair', 'flatTopHair', {}, function (paper, fatness, color) {
         // Flat top
         var e;
 
@@ -740,7 +731,7 @@
         scaleCentered(e, fatScale(fatness), 1);
 	e.setAttribute ("fill", color);
     });
-    addFeature (hair, 'afro', {}, function (paper, fatness, color) {
+    addFeature ('hair', 'afro', {}, function (paper, fatness, color) {
         // Afro
         var e;
 
@@ -752,7 +743,7 @@
 	e.setAttribute ("fill", color);
     });
 
-    addFeature (hair, 'cornrowHair', {}, function (paper, fatness, color, density) {
+    addFeature ('hair', 'cornrowHair', {}, function (paper, fatness, color, density) {
         // Cornrows
         var e;
 
@@ -780,7 +771,7 @@
 	e.setAttribute ("fill", color);
     });
 
-    addFeature (hair, 'spikyHair', {}, function (paper, fatness, color, density, angle) {
+    addFeature ('hair', 'spikyHair', {}, function (paper, fatness, color, density, angle) {
 	// Spiky
 	var rads = angle * Math.PI / 180
 	var len = 80
@@ -798,7 +789,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature (hair, 'bobbleHair', {}, function (paper, fatness, color, density, angle) {
+    addFeature ('hair', 'bobbleHair', {}, function (paper, fatness, color, density, angle) {
 	// Bobbles
 	var rads = angle * Math.PI / 180
 	var r = 10 + 10*(1-density)
@@ -813,38 +804,39 @@
     });
 
     function makeHair (density, callback) {
-	var xmin = 20, xmax = 380, ymax = 300, ymin = 120
+	var xmin = 20, xmax = 380, ymax = 300, ymin = 110
 
-	var w = xmax - xmin, h = ymax - ymin, d = (w*w/4 - h*h) / (2*h)
-	var cx = xmin + w/2, cy = ymax + d, r = h + d
-	var thetaMax = Math.atan ((w/2) / d)
+        var rx = (xmax - xmin) / 2, ry = ymax - ymin
+	var cx = xmin + rx, cy = ymax
+	var thetaMax = Math.PI / 2
 
 	var pathText = ''
 	for (var theta = -thetaMax; theta <= thetaMax; theta += .1*thetaMax*(1 - density)) {
-	    var hx = cx + r*Math.sin(theta), hy = cy - r*Math.cos(theta)
+	    var hx = cx + rx*Math.sin(theta), hy = cy - ry*Math.cos(theta)
 	    pathText += "M" + hx + "," + hy + callback(theta,thetaMax)
 	}
 
 	return pathText
     }
 
-    addFeature (hair, 'baldHead', {}, function () {
+    addFeature ('hair', 'baldHead', {}, function () {
         // Intentionally left blank (bald)
     });
 
     // want red cheeks to be rare
     // a quick/hacky way of upweighting blank cheeks is to add it multiple times with different tags
+    // TODO: add a more flexible weighting scheme
     for (var i = 1; i <= 10; ++i) {
-	addFeature (cheeks, 'noCheekColor' + i, {}, function () {
+	addFeature ('cheeks', 'noCheekColor' + i, {}, function () {
             // Intentionally left blank (no cheek color)
 	});
     }
 
-    addFeature (cheeks, 'redCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
+    addFeature ('cheeks', 'redCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
 	makeCheeks (paper, lr, cx, cy, fatness, 20, '#f00', .2, 'redCheek')
     });
 
-    addFeature (cheeks, 'bigRedCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
+    addFeature ('cheeks', 'bigRedCheeks', {sad:-1}, function (paper, lr, cx, cy, fatness) {
 	makeCheeks (paper, lr, cx, cy, fatness, 30, '#f00', .2, 'bigRedCheek')
     });
 
@@ -858,12 +850,26 @@
         e.setAttribute("fill", "url(#"+tag+")");
         scaleCentered(e, fatScale(fatness), 1);
     }
-  
+
+    // random integers
+    function randomInt(min,max) {
+        return Math.round (min + Math.random() * (max - min))
+    }
+
+    // random rationals from [0,1) truncated at a given number of decimal places (for compactness)
+    function randomRational(precision) {
+        precision = precision || 2  // default is two decimal places
+        var pow = Math.pow(10,precision)
+        return Math.floor (pow * Math.random()) / pow
+    }
+    
+    // random object keys
     function randomArrayIndex(array) {
         return Math.floor(Math.random() * array.length);
     }
 
-    function randomObjectKey(obj,oldKey) {
+    function randomObjectKey(feature,oldKey) {
+        var obj = featureInfo[feature]
         var keys = Object.keys (obj)
 	var key
 	do {
@@ -874,13 +880,36 @@
 	return key
     }
 
+    // seeded pseudorandom numbers (for reproducible effects, e.g. messed-up hair)
+    var seed = 6;
+    function seedRandomNumbers (newSeed) {  // 0 <= newSeed < 1
+	seed = Math.floor (newSeed * 233280)
+    }
+    function randomNumber() {
+	seed = (seed * 9301 + 49297) % 233280;
+	return seed / 233280;
+    }
+
     /**
      * Display a face.
      *
      * @param {string|Object} container Either the DOM element of the div that the face will appear in, or a string containing its id.
      * @param {Object} face Face object, such as one generated from faces.generate.
      */
-    function display(container, face, showAffects) {
+    function display(container, face) {
+        // if called with one argument, treat it as a config object
+        var config = {}
+        if (!face) {
+            config = container
+            container = config.container
+            face = config.face
+        }
+
+        // if config contains 'base' field, then merge it with 'face'
+        // this allows for more compact representation of multiple affects
+        if (config.base)
+            face = Object.assign (deepCopy(base), face)
+
         var paper;
 
         if (typeof container === 'string') {
@@ -896,7 +925,7 @@
         paper.setAttribute("viewBox", "0 0 400 550");
         paper.setAttribute("preserveAspectRatio", "xMidYMid meet");
 
-        if (showAffects) {
+        if (config.showAffects) {
             var div = document.createElement('div');
             var span = document.createElement('span');
             div.setAttribute('style','position:relative;text-align:center;')
@@ -910,21 +939,45 @@
         } else
             container.appendChild(paper);
 
-        head[face.head.id](paper, face.fatness, face.color);
+        var callSequence = [ { feature: 'head', args: ['fatness', 'color'] },
+                             { feature: 'cheeks', args: ['lr', 'cx', 'cy', 'fatness'] },
+                             { feature: 'eyebrows', args: ['lr', 'cx', 'cy'] },
+                             { feature: 'eyes', args: ['lr', 'cx', 'cy', 'angle'] },
+                             { feature: 'nose', args: ['cx', 'cy', 'size', 'posY', 'flip'] },
+                             { feature: 'mouth', args: ['cx', 'cy'] },
+                             { feature: 'hair', args: ['fatness', 'color', 'density', 'angle'] } ]
 
-        cheeks[face.cheeks[0].id](paper, face.cheeks[0].lr, face.cheeks[0].cx, face.cheeks[0].cy, face.fatness);
-        cheeks[face.cheeks[1].id](paper, face.cheeks[1].lr, face.cheeks[1].cx, face.cheeks[1].cy, face.fatness);
-
-        eyebrow[face.eyebrows[0].id](paper, face.eyebrows[0].lr, face.eyebrows[0].cx, face.eyebrows[0].cy);
-        eyebrow[face.eyebrows[1].id](paper, face.eyebrows[1].lr, face.eyebrows[1].cx, face.eyebrows[1].cy);
-
-        eye[face.eyes[0].id](paper, face.eyes[0].lr, face.eyes[0].cx, face.eyes[0].cy, face.eyes[0].angle);
-        eye[face.eyes[1].id](paper, face.eyes[1].lr, face.eyes[1].cx, face.eyes[1].cy, face.eyes[1].angle);
-
-        nose[face.nose.id](paper, face.nose.cx, face.nose.cy, face.nose.size, face.nose.posY, face.nose.flip);
-        mouth[face.mouth.id](paper, face.mouth.cx, face.mouth.cy);
-        hair[face.hair.id](paper, face.fatness, face.hair.color, face.hair.density, face.hair.angle);
+        function makeCall (feature, obj, defaults, argKeys) {
+            defaults = defaults || {}
+            var args = [paper].concat (argKeys.map (function (key, n) {
+                var val = obj[key]
+                if (typeof val === 'undefined') val = face[key]
+                if (typeof val === 'undefined') val = defaults[key]
+                return val
+            }))
+            featureInfo[feature][obj.id].func.apply (null, args)
+        }
+        
+        callSequence.forEach (function (callInfo) {
+            var feature = callInfo.feature
+            if (isArray (face[feature]))
+                face[feature].forEach (function (obj, n) {
+                    makeCall (feature, obj, defaultCoords[feature][n], callInfo.args)
+                })
+            else
+                makeCall (feature, face[feature], defaultCoords[feature], callInfo.args)
+        })
     }
+
+    // put default coordinates of features into a global object, to save space
+    var defaultCoords = {eyebrows: [{lr: "l", cx: 135, cy: 250},
+                                    {lr: "r", cx: 265, cy: 250}],
+                         eyes: [{lr: "l", cx: 135, cy: 280},
+                                {lr: "r", cx: 265, cy: 280}],
+                         nose: {cx: 200, cy: 330},
+                         mouth: {cx: 200, cy: 400},
+                         cheeks: [{lr: "l", cx: 125, cy: 360},
+                                  {lr: "r", cx: 275, cy: 360}]};
 
     /**
      * Generate a random face.
@@ -932,32 +985,37 @@
      * @param {string|Object=} container Either the DOM element of the div that the face will appear in, or a string containing its id. If not given, no face is drawn and the face object is simply returned.
      * @return {Object} Randomly generated face object.
      */
+    
     function randomizeEyebrows (face) {
-        var id = randomObjectKey(eyebrow,face.eyebrows[0].id);
-        face.eyebrows[0] = {id: id, lr: "l", cx: 135, cy: 250};
-        face.eyebrows[1] = {id: id, lr: "r", cx: 265, cy: 250};
+        var id = randomObjectKey('eyebrows',face.eyebrows[0].id);
+        face.eyebrows[0] = {id: id};
+        face.eyebrows[1] = {id: id};
     }
 
     function randomizeEyes (face) {
-	var angle = Math.random() * 50 - 20;
-	var id = randomObjectKey(eye,face.eyes[0].id);
-        face.eyes[0] = {id: id, lr: "l", cx: 135, cy: 280, angle: angle};
-        face.eyes[1] = {id: id, lr: "r", cx: 265, cy: 280, angle: angle};
+	var angle = randomInt (-20, 30)
+	var id = randomObjectKey('eyes',face.eyes[0].id);
+        face.eyes[0] = {id: id, angle: angle};
+        face.eyes[1] = {id: id, angle: angle};
     }
 
     function randomizeMouth (face) {
-        face.mouth = {id: randomObjectKey(mouth,face.mouth.id), cx: 200, cy: 400};
+        face.mouth = {id: randomObjectKey('mouth',face.mouth.id)};
     }
 
     function randomizeCheeks (face) {
-	var id = randomObjectKey(cheeks,face.cheeks.id)
-        face.cheeks[0] = {id: id, lr: "l", cx: 125, cy: 360};
-        face.cheeks[1] = {id: id, lr: "r", cx: 275, cy: 360};
+	var id = randomObjectKey('cheeks',face.cheeks.id)
+        face.cheeks[0] = {id: id};
+        face.cheeks[1] = {id: id};
     }
 
+    function isArray (obj) {
+        return Object.prototype.toString.call(obj) === '[object Array]'
+    }
+        
     function deepCopy (obj) {
 	var copy
-	if (Object.prototype.toString.call(obj) === '[object Array]')
+	if (isArray(obj))
 	    copy = obj.slice(0)
 	else if (typeof(obj) === 'object') {
 	    var copy = {}
@@ -969,36 +1027,44 @@
 	return copy
     }
 
-    function generate(container, showAffects) {
+    function generate(config) {
+        // if called with one argument, treat it as the container
+        config = config || {}
+        if (typeof(config) === 'string')
+            config = {container:config}
+
+        var container = config.container
+        var showAffects = config.showAffects
         var angle, colors, face, flip, id;
 
         face = {head: {}, eyebrows: [{}, {}], eyes: [{}, {}], nose: {}, mouth: {}, cheeks: [{}, {}], hair: {}};
-        face.fatness = Math.random();
+        face.fatness = randomRational(2);
         colors = ["#FFDFC4","#F0D5BE","#EECEB3","#E1B899","#E5C298","#FFDCB2","#E5B887","#E5A073","#E79E6D","#DB9065","#CE967C","#C67856","#BA6C49","#A57257","#F0C8C9","#DDA8A0","#B97C6D","#A8756C","#AD6452","#5C3836","#CB8442","#BD723C","#704139","#A3866A"];  // Pantone skin tones, give or take a few
         face.color = colors[randomArrayIndex(colors)];
 
-        face.head = {id: randomObjectKey(head)};
+        face.head = {id: randomObjectKey('head')};
 
 	randomizeEyebrows (face);
 	randomizeEyes (face);
 	randomizeMouth (face);
 	randomizeCheeks (face);
 
-        angle = Math.random() * 50 - 20;
-        id = randomObjectKey(eye);
-        face.eyes[0] = {id: id, lr: "l", cx: 135, cy: 280, angle: angle};
-        face.eyes[1] = {id: id, lr: "r", cx: 265, cy: 280, angle: angle};
+        angle = randomInt (-20, 30)
+        id = randomObjectKey('eyes');
+        face.eyes[0] = {id: id, angle: angle};
+        face.eyes[1] = {id: id, angle: angle};
 
         flip = Math.random() > 0.5 ? true : false;
-        face.nose = {id: randomObjectKey(nose), lr: "l", cx: 200, cy: 330, size: Math.random(), posY: undefined, flip: flip};
+        face.nose = {id: randomObjectKey('nose'), size: randomRational(2), posY: undefined, flip: flip};
 
-	colors = [ // "#090806",   /* disable black for now */
+	colors = [ // "#090806",   /* disable black since client application uses a black background; TODO make this configurable */
                   "#2C222B","#71635A","#B7A69E","#D6C4C2","#CABFB1","#DCD0BA","#FFF5E1","#E6CEA8","#E5C8A8","#DEBC99","#B89778","#A56B46","#B55239","#8D4A43","#91553D","#533D32","#3B3024","#554838","#4E433F","#504444","#6A4E42","#A7856A","#977961"]  // hair colors from http://www.collectedwebs.com/art/colors/hair/
-	angle = Math.random() * 60 - 20
-        face.hair = {id: randomObjectKey(hair), density: Math.random(), angle: angle, color: colors[randomArrayIndex(colors)]};
+	angle = randomInt (-20, 40)
+        face.hair = {id: randomObjectKey('hair'), density: randomRational(2),
+                     angle: angle, color: colors[randomArrayIndex(colors)]};
         
         if (typeof container !== "undefined") {
-            display(container, face, showAffects);
+            display(container, face, config.showAffects);
         }
 
 	return face;
@@ -1031,6 +1097,15 @@
 	return face
     }
 
+    function extract (obj, keys) {
+        var x = {}
+        keys.forEach (function (k) { x[k] = obj[k] })
+        return x
+    }
+        
+    function getEmotiveFeatures (face) { return extract (face, emotiveFeatures) }
+    function getUnemotiveFeatures (face) { return extract (face, unemotiveFeatures) }
+    
     // generate a face for each emotion
     function generateSet (face, mutProb) {
         var faceSet = {}
@@ -1039,12 +1114,13 @@
                 face = generate()
             } while (affects(face).length > 1)
         }
+        faceSet.base = getUnemotiveFeatures (face)
         var aff = affects(face)
 	allEmotions.forEach (function (emotion) {
             if (aff.length == 1 && aff[0] == emotion)
                 faceSet[emotion] = face
             else
-	        faceSet[emotion] = mutate (deepCopy(face), mutProb, emotion)
+	        faceSet[emotion] = getEmotiveFeatures (mutate (deepCopy(face), mutProb, emotion))
 	})
 	return faceSet
     }

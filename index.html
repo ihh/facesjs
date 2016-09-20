@@ -124,7 +124,7 @@ function newFaces() {
     var ci = document.getElementById("c" + i)
     ci.style.backgroundColor = "#" + Math.random().toString(16).slice(2, 8);
     ci.addEventListener ('click', mutateFace.bind(null,i));
-    faceList[i] = faces.generate("c" + i, true);
+    faceList[i] = faces.generate ({ container: "c" + i, showAffects: true });
   }
 }
 newFaces(); // Generate faces for initial page load
