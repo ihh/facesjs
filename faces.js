@@ -107,16 +107,18 @@
         }
 
 //        console.log(emotionScore)
-        
-        var maxScore, maxEmotions = []
-        Object.keys(emotionScore).forEach (function (emotion) {
-            if (typeof(maxScore) === 'undefined' || emotionScore[emotion] > maxScore) {
-                maxScore = emotionScore[emotion]
-                maxEmotions = [emotion]
-            } else if (emotionScore[emotion] == maxScore)
-                maxEmotions.push (emotion)
+
+        var sortedEmotions = allEmotions.sort (function (a, b) {
+            return emotionScore[b] - emotionScore[a]
         })
-        return maxEmotions
+        var topEmotions = allEmotions.filter (function (e) {
+            return emotionScore[e] == emotionScore[sortedEmotions[0]]
+        })
+        var topEmotionLead
+        if (topEmotions.length < allEmotions.length)
+            topEmotionLead = emotionScore[sortedEmotions[0]] - emotionScore[sortedEmotions[topEmotions.length]]
+        
+        return { top: topEmotions, lead: topEmotionLead }
     }
     
     addFeature ('head', 'genericHead', {}, function (paper, fatness, color) {
@@ -945,7 +947,7 @@
             var span = document.createElement('span');
             div.setAttribute('style','position:relative;text-align:center;')
             span.setAttribute('style','position:absolute;left:0;bottom:0;width:100%;margin-bottom:1px;-moz-user-select:none;-webkit-user-select:none;')
-            span.innerText = affects(face).join(', ');
+            span.innerText = affects(face).top.join(', ');
 
             div.appendChild(paper);
             div.appendChild(span);
@@ -1088,13 +1090,14 @@
     }
 
     // mutate a face to a new (single-emotion) affect
-    function mutate (face, mutProb, newAffect) {
-	mutProb = mutProb || 1;
+    function mutate (face, mutProb, newAffect, minLead) {
+	mutProb = mutProb || 1
+        minLead = minLead || .5
 	var oldAffects = affects(face)
 	while (!newAffect) {
 	    var emotion = allEmotions[randomArrayIndex(allEmotions)]
-	    if (oldAffects.length == allEmotions.length
-		|| !oldAffects.find (function (e) { return emotion == e }))
+	    if (oldAffects.top.length == allEmotions.length
+		|| !oldAffects.top.find (function (e) { return emotion == e }))
 		newAffect = emotion
 	}
 
@@ -1110,7 +1113,7 @@
 	    if (Math.random() < mutProb)
 		randomizeCheeks (face);
 	    newAffects = affects(face)
-	} while (newAffects.length != 1 || newAffects[0] != newAffect)
+	} while (newAffects.top.length != 1 || newAffects.top[0] != newAffect || newAffects.lead < minLead)
 
 	return face
     }
