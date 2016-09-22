@@ -85,10 +85,8 @@
             var id = obj.id
             allEmotions.forEach (function (emotion) {
                 var score = featureInfo[key][id][emotion]
-                if (score) {
-//                    console.log(id+" "+emotion+" "+score)
+                if (score)
                     emotionScore[emotion] += score
-                }
             })
         })
 
@@ -106,9 +104,7 @@
             emotionScore.sad += .1
         }
 
-//        console.log(emotionScore)
-
-        var sortedEmotions = allEmotions.sort (function (a, b) {
+        var sortedEmotions = allEmotions.slice(0).sort (function (a, b) {
             return emotionScore[b] - emotionScore[a]
         })
         var topEmotions = allEmotions.filter (function (e) {
@@ -1147,10 +1143,7 @@
         faceSet.base = getUnemotiveFeatures (face)
         var aff = affects(face)
 	allEmotions.forEach (function (emotion) {
-            if (aff.top.length == 1 && aff.top[0] == emotion)
-                faceSet[emotion] = face
-            else
-	        faceSet[emotion] = getEmotiveFeatures (mutate(face, mutProb, emotion))
+	    faceSet[emotion] = getEmotiveFeatures (mutate(face, mutProb, emotion))
 	})
 	return faceSet
     }
