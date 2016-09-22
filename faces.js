@@ -83,8 +83,12 @@
         emotiveFeatures.forEach (function (key) {
             var obj = isArray(face[key]) ? face[key][0] : face[key]
             var id = obj.id
-            Object.keys (featureInfo[key][id]).forEach (function (emotion) {
-                emotionScore[emotion] += featureInfo[key][id][emotion]
+            allEmotions.forEach (function (emotion) {
+                var score = featureInfo[key][id][emotion]
+                if (score) {
+//                    console.log(id+" "+emotion+" "+score)
+                    emotionScore[emotion] += score
+                }
             })
         })
 
@@ -92,16 +96,18 @@
         if (eyeAngle > 15) {
             emotionScore.angry += .5
         } else if (eyeAngle > 5) {
-            emotionScore.angry += .25
-            emotionScore.sad += .25
+            emotionScore.angry += .2
+            emotionScore.sad += .2
         } else if (eyeAngle < -15) {
             emotionScore.angry -= .5
-            emotionScore.sad += .25
+            emotionScore.sad += .2
         } else if (eyeAngle < -5) {
-            emotionScore.angry -= .25
+            emotionScore.angry -= .2
             emotionScore.sad += .1
         }
 
+//        console.log(emotionScore)
+        
         var maxScore, maxEmotions = []
         Object.keys(emotionScore).forEach (function (emotion) {
             if (typeof(maxScore) === 'undefined' || emotionScore[emotion] > maxScore) {
@@ -579,7 +585,7 @@
                        "a 54,10 0 1 1 110,0" +
                        "a 54,20 0 1 1 -110,0");
     });
-    addFeature ('mouth', 'surprisedMouth', {surprised:+1}, function (paper, cx, cy) {
+    addFeature ('mouth', 'surprisedMouth', {surprised:+2}, function (paper, cx, cy) {
         // Surprised "O" mouth
         var e, x = cx - 25, y = cy + 10;
 
@@ -588,7 +594,7 @@
                        "a 25,25 0 1 1 50,0" +
                        "a 25,25 0 1 1 -50,0");
     });
-    addFeature ('mouth', 'surprisedWithTeeth', {surprised:+1,angry:+.3}, function (paper, cx, cy) {
+    addFeature ('mouth', 'surprisedWithTeeth', {surprised:+1.5,angry:+.3}, function (paper, cx, cy) {
         // Surprised "O" mouth with teeth
         var e, x = cx - 25, y = cy + 10;
 
