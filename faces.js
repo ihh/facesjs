@@ -1139,7 +1139,7 @@
         if (!face) {
             do {
                 face = generate()
-            } while (affects(face).length > 1
+            } while (affects(face).top.length > 1
                      || featuresWithTypes.find (function (feature) {
                          return !getFeatureType (face, feature)
                      }))
@@ -1147,7 +1147,7 @@
         faceSet.base = getUnemotiveFeatures (face)
         var aff = affects(face)
 	allEmotions.forEach (function (emotion) {
-            if (aff.length == 1 && aff[0] == emotion)
+            if (aff.top.length == 1 && aff.top[0] == emotion)
                 faceSet[emotion] = face
             else
 	        faceSet[emotion] = getEmotiveFeatures (mutate(face, mutProb, emotion))
