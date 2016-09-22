@@ -276,7 +276,7 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
-    addFeature ('eyebrows', 'downCurvedBrows', {angry:+.6}, function (paper, lr, cx, cy) {
+    addFeature ('eyebrows', 'downCurvedBrows', {angry:+.4,sad:+.3}, function (paper, lr, cx, cy) {
         // down-curved
         var e, x = cx - 30, y = cy - 10;
 
@@ -293,7 +293,7 @@
         e.setAttribute("fill", "none");
     });
 
-    addFeature ('eyebrows', 'furrowedBrows', {angry:+.5,sad:+.25}, function (paper, lr, cx, cy) {
+    addFeature ('eyebrows', 'furrowedBrows', {angry:+.6,sad:+.25}, function (paper, lr, cx, cy) {
         // furrowed
         var e, x = cx - 30, y = cy - 20;
 
