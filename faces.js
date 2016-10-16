@@ -131,6 +131,21 @@
         scaleCentered(e, fatScale(fatness), 1);
     });
 
+    addFeature ('head', 'squareHead', {weight:0}, function (paper, fatness, color) {
+        // generic
+        var e;
+
+        e = newPath(paper);
+        e.setAttribute("d", "M 200,100" +
+                       "c 0,0 180,-10 180,200" +
+                       "l 0,200" +
+                       "l -360,0" +
+                       "l 0,-200" +
+                       "c 0,0 0,-210 180,-200");
+        e.setAttribute("fill", color);
+        scaleCentered(e, fatScale(fatness), 1);
+    });
+
     addFeature ('head', 'eggLike', {}, function (paper, fatness, color) {
         // egg-like
         var e;
