@@ -871,22 +871,26 @@
             return info[key].type
         })
     })
-    
+
+    // random number generator
+    var rng = Math.random.bind(Math)
+    function setRng (newRng) { rng = newRng }
+  
     // random integers
     function randomInt(min,max) {
-        return Math.round (min + Math.random() * (max - min))
+        return Math.round (min + rng() * (max - min))
     }
 
     // random rationals from [0,1) truncated at a given number of decimal places (for compactness)
     function randomRational(precision) {
         precision = precision || 2  // default is two decimal places
         var pow = Math.pow(10,precision)
-        return Math.floor (pow * Math.random()) / pow
+        return Math.floor (pow * rng()) / pow
     }
     
     // random object keys
     function randomArrayIndex(array) {
-        return Math.floor(Math.random() * array.length);
+        return Math.floor(rng() * array.length);
     }
 
     function randomObjectKey(feature,oldKey) {
@@ -901,7 +905,7 @@
             return info[key].hasOwnProperty('weight') ? info[key].weight : 1
         })
         var totalWeight = weight.reduce (function(sum,summand){return sum+summand}, 0)
-        var w = Math.random() * totalWeight
+        var w = rng() * totalWeight
         for (var i = 0; i < weight.length; ++i)
             if ((w -= weight[i]) <= 0)
                 return keys[i]
@@ -909,6 +913,7 @@
     }
 
     // seeded pseudorandom numbers (for reproducible effects, e.g. messed-up hair)
+    // NB main random number generator can also be made pseudorandom, using setRng() call
     var seed = 6;
     function seedRandomNumbers (newSeed) {  // 0 <= newSeed < 1
 	seed = Math.floor (newSeed * 233280)
@@ -1082,7 +1087,7 @@
         face.eyes[0] = {id: id, angle: angle};
         face.eyes[1] = {id: id, angle: angle};
 
-        flip = Math.random() > 0.5 ? true : false;
+        flip = rng() > 0.5 ? true : false;
         face.nose = {id: randomObjectKey('nose'), size: randomRational(2), posY: undefined, flip: flip};
 
 	colors = [ // "#090806",   /* disable black since client application uses a black background; TODO make this configurable */
@@ -1115,13 +1120,13 @@
 	var newAffects, oldFace = face
 	do {
             face = deepCopy (oldFace)
-	    if (Math.random() < mutProb)
+	    if (rng() < mutProb)
 		randomizeEyebrows (face);
-	    if (Math.random() < mutProb)
+	    if (rng() < mutProb)
 		randomizeEyes (face);
-	    if (Math.random() < mutProb)
+	    if (rng() < mutProb)
 		randomizeMouth (face);
-	    if (Math.random() < mutProb)
+	    if (rng() < mutProb)
 		randomizeCheeks (face);
 	    newAffects = affects(face)
 	} while (newAffects.top.length != 1 || newAffects.top[0] != newAffect || newAffects.lead < minLead)
