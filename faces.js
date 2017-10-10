@@ -1169,6 +1169,7 @@
     }
 
     return {
+        setRng: setRng,
         display: display,
         generate: generate,
 	mutate: mutate,
