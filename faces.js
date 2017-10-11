@@ -1174,6 +1174,7 @@
         generate: generate,
 	mutate: mutate,
 	affects: affects,
+	allEmotions: allEmotions,
         getFeatureType: getFeatureType,
         randomObjectKey: randomObjectKey,
 	generateSet: generateSet
